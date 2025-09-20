@@ -5,3 +5,16 @@ sounddevice
 numpy
 python-dotenv
 pyttsx3
+streamlit
+pandas
+matplotlib
+python-dotenv
+faster-whisper
+chromadb
+sentence-transformers
+huggingface-hub
+transformers
+torch 
+gTTS 
+reportlab
+streamlit-mic-recorder
