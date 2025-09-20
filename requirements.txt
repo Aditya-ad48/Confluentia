@@ -1,0 +1,7 @@
+langchain
+langchain-groq
+faster-whisper
+sounddevice
+numpy
+python-dotenv
+pyttsx3
