@@ -10,38 +10,37 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.tools import tool
 
-# --- 1. Configuration and Setup ---
+#  1. Configuration and Setup 
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Whisper STT Configuration
-MODEL_SIZE = "base.en"      # "tiny.en", "base.en", "small.en", "medium.en"
-WHISPER_DEVICE = "cpu"      # "cpu" or "cuda" if you have an NVIDIA GPU
-WHISPER_COMPUTE = "int8"    # "int8" for CPU, "float16" for GPU
+MODEL_SIZE = "base.en"      
+WHISPER_DEVICE = "cpu"      
+WHISPER_COMPUTE = "int8"    
 
 # Audio Recording Configuration
-# MODIFICATION 1: Increased listening window to 10 seconds
 INTERVAL = 10               # Record in 10-second chunks
 SAMPLE_RATE = 16000
 
-# --- 2. Initialize Core Components ---
+# 2. Initialize Core Components 
 
 print("Initializing components...")
 
 # Initialize Text-to-Speech Engine with better error handling
 try:
     tts_engine = pyttsx3.init()
-    print("✅ TTS engine initialized successfully.")
+    print("TTS engine initialized successfully.")
 except Exception as e:
-    print(f"❌ CRITICAL: Error initializing TTS engine: {e}")
+    print(f"CRITICAL: Error initializing TTS engine: {e}")
     print("   The agent will not be able to speak. Please check your system's TTS drivers.")
     tts_engine = None
 
 # Initialize Whisper Model
 print(f"Loading Whisper model '{MODEL_SIZE}'...")
 whisper_model = WhisperModel(MODEL_SIZE, device=WHISPER_DEVICE, compute_type=WHISPER_COMPUTE)
-print("✅ Whisper model loaded.")
+print("Whisper model loaded.")
 
 # Initialize LangChain Agent
 llm = ChatGroq(model="llama-3.1-8b-instant")
@@ -63,14 +62,14 @@ prompt = ChatPromptTemplate.from_messages([
 agent = create_tool_calling_agent(llm, tools, prompt)
 agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=False)
 
-print("✅ All components initialized. The agent is ready.")
+print("All components initialized. The agent is ready.")
 
-# --- 3. Helper Functions ---
+#3. Helper Functions
 
 def speak(text):
     """Converts text to speech and gives terminal feedback."""
     if tts_engine and text:
-        print(f"🤖 AGENT: {text}")
+        print(f"AGENT: {text}")
         print("Speaking...")
         # This function blocks until the speech is finished
         tts_engine.say(text)
@@ -83,7 +82,7 @@ def speak(text):
         pass
 
 
-# --- 4. Main Application Loop ---
+#4. Main Application Loop 
 
 def main():
     """The main loop to listen, transcribe, think, and speak."""
@@ -101,7 +100,7 @@ def main():
             audio_data = sd.rec(int(INTERVAL * SAMPLE_RATE), samplerate=SAMPLE_RATE, channels=1, dtype='float32')
             sd.wait()
 
-            print("📝 Transcribing...")
+            print("Transcribing...")
             segments, _ = whisper_model.transcribe(audio_data.flatten(), beam_size=5, vad_filter=True)
             
             user_text = "".join(segment.text for segment in segments).strip()
@@ -110,16 +109,15 @@ def main():
                 print("(No clear speech detected)")
                 continue
 
-            print(f"👤 YOU: {user_text}")
+            print(f"YOU: {user_text}")
 
-            print("🤔 Thinking...")
+            print("Thinking...")
             response = agent_executor.invoke({"input": user_text})
             agent_response = response.get("output", "I'm not sure how to respond to that.")
             
             # Speak the response
             speak(agent_response)
             
-            # MODIFICATION 2: Add a 4-second pause after the AI speaks
             print("(Pausing for 4 seconds before listening again...)")
             time.sleep(4)
 
@@ -132,4 +130,5 @@ def main():
             time.sleep(2)
 
 if __name__ == "__main__":
+
     main()
